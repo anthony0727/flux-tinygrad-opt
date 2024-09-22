@@ -32,6 +32,7 @@ When solely optimized with one method.
 | TC                  | 6317.517  |
 | BEAM                | 594.451   |
 | MCTS                | 825.108   |
+
 (The raw result significantly differs from the values from Peter and Antonio, check.)
 
 
@@ -43,7 +44,7 @@ Couldn't solve TODO-1, therefore, the times(ms) and GFLOPS are measured within t
 
 **An optimized kernel**
 <details>
-<summary>Block size tuned kernel</summary>
+<summary>Block size-tuned kernel</summary>
 
 ```
 #define INFINITY (__int_as_float(0x7f800000))
