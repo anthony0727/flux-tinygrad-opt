@@ -1,5 +1,22 @@
 # flux-tinygrad-opt
 
+## Run
+(You should own resource enough for running Flux.1)
+```
+python main.py
+```
+
+```
+"""PREREQUISITES
+apt install graphviz git-lfs
+pip install pillow pydot networkx sentencepiece torch transformers diffusers accelerate
+pip install git+https://github.com/black-forest-labs/flux.git
+
+You might also have to add path for tinygrad/extras and tinygrad/examples folders. e.g. in main.py:
+# sys.path.append('/home/anthony/tinygrad')
+"""
+```
+
 ## Objective
 Try optimizing Blackforest's Flux.1 with tinygrad's optimization.
 
