@@ -7,6 +7,11 @@ You might also have to add path for tinygrad/extras and tinygrad/examples folder
 # sys.path.append('/home/anthony/tinygrad')
 """
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+import sys
+sys.path.append('/home/anthony/tinygrad')
+
 from typing import List, Tuple
 from argparse import Namespace
 from tqdm import tqdm
@@ -119,13 +124,12 @@ def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec):
 
 BEAM = 20
 MCTS = 150
-def opt(sched, methods: List[str] = ['RAW'], device: Compiled = Device[Device.DEFAULT]):
+def opt(sched, methods: List[str] = ['RAW']):
+    device: Compiled = Device[Device.DEFAULT]
     res_tm, res_gflop = defaultdict(float), defaultdict(float)
     if getenv("BACKWARD"): Tensor.training = True
     print(f"optimizing for {device}")
 
-    sched = globals()[f"get_sched_{getenv('MODEL', 'resnet')}"]()
-  # sched = get_sched_flux_flow_model()
     sched = [x for x in sched if x.ast.op is UOps.SINK]
 
     # focus on one kernel
@@ -186,7 +190,7 @@ def opt(sched, methods: List[str] = ['RAW'], device: Compiled = Device[Device.DE
             choices.append((tm, gflops, lin, prg, nm))
 
         pprint(res_tm)
-        pprint(res_gflop)
+        # pprint(res_gflop)
         sorted_choices = sorted(choices, key=lambda x: x[0])
         if DEBUG >= 1: # print all kernels
             for tm, gflops, lin, prg, nm in choices:
@@ -206,5 +210,5 @@ def opt(sched, methods: List[str] = ['RAW'], device: Compiled = Device[Device.DE
     print("usage:")
     for k in sorted(usage, key=lambda x: -usage[x][0])[:10]:
         print(f"{usage[k][0]*1000:.2f} ms: {k} ({usage[k][1]} times)")
-        print('total time', res_tm)
-        print('total gflop', res_gflop)
+    print('total time', res_tm)
+    # print('total gflop', res_gflop)
