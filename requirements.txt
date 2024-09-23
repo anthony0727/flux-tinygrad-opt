@@ -1,0 +1,11 @@
+pillow 
+pydot 
+networkx 
+sentencepiece 
+torch 
+tinygrad
+transformers 
+diffusers 
+accelerate
+git+https://github.com/black-forest-labs/flux.git
+
