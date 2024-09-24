@@ -35,7 +35,7 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 
 ## Result
 ### Benchmark
-**total 592.40 ms,  60225 GFLOPS**
+**Final result : total 592.40 ms,  60225 GFLOPS**
 
 Cumulative inference times for propagating through all kernesl. 
 
@@ -45,7 +45,7 @@ Flux's flow breaks down to 1423 tinygrad kernels.
 
 <br>
 
-When solely optimized with one method.
+**Another result**; When solely optimized with one method.
 | Optimization Method | Time (ms) |
 |---------------------|-----------|
 | RAW                 | 201654.093|
