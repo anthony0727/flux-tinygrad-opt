@@ -37,7 +37,11 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 ### Benchmark
 **total 592.40 ms,  60225 GFLOPS**
 
-Best method chosen for each kernel, where Flux's flow breaks down to 1423 tinygrad kernels.
+Cumulative inference times for propagating through all kernesl. 
+
+Best time among all methods is chosen for each kernel. 
+
+Flux's flow breaks down to 1423 tinygrad kernels.
 
 <br>
 
