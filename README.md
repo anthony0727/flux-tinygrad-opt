@@ -1,22 +1,5 @@
 # flux-tinygrad-opt
 
-## Run
-(You should own resource enough for running Flux.1)
-```
-python main.py
-
-You might also have to add path for tinygrad/extras and tinygrad/examples folders. e.g. in main.py:
-import sys; sys.path.append('PATH/TO/tinygrad')
-```
-
-## Prerequisites
-```
-pip install -r requirements.txt
-```
-```
-apt install graphviz git-lfs
-```
-
 ## Objective
 Try optimizing Blackforest's Flux.1 with tinygrad's optimization.
 
@@ -37,7 +20,7 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 ### Benchmark
 **Final result : total 592.40 ms,  60225 GFLOPS**
 
-Cumulative inference times for propagating through all kernesl. 
+Cumulative inference times for propagating through all kernels. 
 
 Best time among all methods is chosen for each kernel. 
 
@@ -60,6 +43,24 @@ Flux's flow breaks down to 1423 tinygrad kernels.
 **Caveat**
 Couldn't solve TODO-1, therefore, the times(ms) and GFLOPS are measured within tinygrad's method.
 [TODO-2] Does tinygrad lookup hardware intrinsics? or actually measure the time? The [runtime dispatcher](https://github.com/tinygrad/tinygrad/blob/4fc5a34fe794036d929217df9939acf9337ae46d/tinygrad/engine/realize.py#L85) returns execution time when called?
+
+
+## Run
+(You should own resource enough for running Flux.1)
+```
+python main.py
+
+You might also have to add path for tinygrad/extras and tinygrad/examples folders. e.g. in main.py:
+import sys; sys.path.append('PATH/TO/tinygrad')
+```
+
+## Prerequisites
+```
+pip install -r requirements.txt
+```
+```
+apt install graphviz git-lfs
+```
 
 ### Example outputs
 
