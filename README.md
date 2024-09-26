@@ -22,7 +22,7 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 
 Cumulative inference times for propagating through all kernels. 
 
-Best time among all methods is chosen for each kernel. 
+Best time among all methods is chosen for each kernel. e.g. BEAM(594.451) would be chosen for kernel_X for below table.
 
 Flux's flow breaks down to 1423 tinygrad kernels.
 
