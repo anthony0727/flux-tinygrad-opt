@@ -1,7 +1,7 @@
 # flux-tinygrad-opt
 
 ## Objective
-Try optimizing Blackforest's Flux.1 with tinygrad's optimization.
+Try optimizing Blackforest's Flux.1 with tinygrad's optimization, especially on H100.
 
 Flux model class is based on PR [#6334](https://github.com/tinygrad/tinygrad/pull/6334), which can seamlessly load weights of official one, downloaded from huggingface.
 
