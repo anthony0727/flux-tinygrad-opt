@@ -18,17 +18,15 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 
 ## Result
 ### Benchmark
-**Final result : total 592.40 ms,  60225 GFLOPS**
+**Final result : total 592.40 ms,  60225 GFLOPS**; the cumulative inference time for propagating through all kernels.
 
-Cumulative inference times for propagating through all kernels. 
+For each kernel, the best time across all optimization methods is selected. For example, in the table below, BEAM (594.451 ms) is chosen for kernel_X.
 
-Best time among all methods is chosen for each kernel. e.g. BEAM(594.451) would be chosen for kernel_X for in table.
+Flux's flow is broken down into 1,423 tinygrad kernels.
 
-Flux's flow part breaks down to 1423 tinygrad kernels.
+---
 
-<br>
-
-**Another result**; When solely optimized with one method.
+**Additional results** Performance when using a single optimization method exclusively.
 | Optimization Method | Time (ms) |
 |---------------------|-----------|
 | RAW                 | 201654.093|
