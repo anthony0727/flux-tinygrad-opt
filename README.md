@@ -35,7 +35,7 @@ Flux's flow is broken down into 1,423 tinygrad kernels.
 | BEAM                | 594.451   |
 | MCTS                | 825.108   |
 
-(The raw result significantly differs from the values from Peter and Antonio, check.)
+(The raw result significantly differs from the values from Peter and Antonio, check.) => the time seems to be correct. https://github.com/tinygrad/tinygrad/issues/6759
 
 
 **Caveat**
