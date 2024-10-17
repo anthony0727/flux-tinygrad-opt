@@ -12,6 +12,7 @@ Optim. methods include
 ---
 * BEAM: Beam search the kernel.
 * MCTS: MCTS the kernel.
+* [TODO-RL]: Utilize RL like AlphDev did for CPU.
 
 [TODO-1] Reverse-engineer optimized IR back to high-level tinygrad code and benchmark with "torch compiled" original Flux, measured by torch profiler or `torch.cuda.Event`.
 Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abstractions2.py).
