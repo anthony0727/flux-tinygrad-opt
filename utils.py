@@ -23,11 +23,6 @@ from examples.flux1 import (
     load_flow_model
 )
 
-def _tabulate(data, col_names):
-    formatted_data = [(key, format(value, '.6f')) for key, value in data.items()]
-    table = tabulate(formatted_data, headers=['Opt.'] + col_names, tablefmt='pretty')
-
-    return table
 
 def get_original_flow():
     from transformers import pipeline

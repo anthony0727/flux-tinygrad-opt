@@ -11,15 +11,14 @@ import torch_geometric as pyg
 from torch_geometric.utils.convert import from_networkx
 from torch_geometric.nn.conv import GATv2Conv
 from torch_geometric.data import Batch, Data
-from transformers import AutoTokenizer, AutoModel
-
 
 import tinygrad as td
 
 from torch import nn
 from torch_geometric.nn.conv import GATv2Conv
 
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+# from transformers import AutoTokenizer, AutoModel
+# from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 # Load the model
 
@@ -80,40 +79,40 @@ class TabularEncoder(nn.Module):
 
         return x
 
-class CustomCombinedExtractor(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Dict):
-        super().__init__(observation_space, features_dim=1)
+# class CustomCombinedExtractor(BaseFeaturesExtractor):
+#     def __init__(self, observation_space: gym.spaces.Dict):
+#         super().__init__(observation_space, features_dim=1)
 
-        extractors = {}
+#         extractors = {}
 
-        total_concat_size = 0
-        for key, subspace in observation_space.spaces.items():
-            if key == "src":
-                extractors[key] = SrcEncoder(subspace.shape[0], 128)
+#         total_concat_size = 0
+#         for key, subspace in observation_space.spaces.items():
+#             if key == "src":
+#                 extractors[key] = SrcEncoder(subspace.shape[0], 128)
                 
-            elif key == "graph":
-                # Run through a simple MLP
-                extractors[key] = GraphUOpsEncoder(subspace.node_space.shape[0], 128)
+#             elif key == "graph":
+#                 # Run through a simple MLP
+#                 extractors[key] = GraphUOpsEncoder(subspace.node_space.shape[0], 128)
                 
-            elif key == "tabular":
-                # Run through a simple MLP
-                extractors[key] = TabularEncoder(subspace.shape[0], 128)
+#             elif key == "tabular":
+#                 # Run through a simple MLP
+#                 extractors[key] = TabularEncoder(subspace.shape[0], 128)
                 
 
-        self.extractors = nn.ModuleDict(extractors)
+#         self.extractors = nn.ModuleDict(extractors)
 
-        # Update the features dim manually
-        self._features_dim = 384
+#         # Update the features dim manually
+#         self._features_dim = 384
 
-    def forward(self, observations) -> th.Tensor:
-        encoded_tensor_list = []
+#     def forward(self, observations) -> th.Tensor:
+#         encoded_tensor_list = []
 
-        for key, extractor in self.extractors.items():
-            if key == "graph":
-                x = extractor(observations[key].nodes, observations[key].edge_links)
-            else:
-                x = extractor(observations[key])
-            encoded_tensor_list.append(x)
-        # Return a (B, self._features_dim) PyTorch tensor, where B is batch dimension.
-        # print([i.shape for i in encoded_tensor_list])
-        return th.cat(encoded_tensor_list)
+#         for key, extractor in self.extractors.items():
+#             if key == "graph":
+#                 x = extractor(observations[key].nodes, observations[key].edge_links)
+#             else:
+#                 x = extractor(observations[key])
+#             encoded_tensor_list.append(x)
+#         # Return a (B, self._features_dim) PyTorch tensor, where B is batch dimension.
+#         # print([i.shape for i in encoded_tensor_list])
+#         return th.cat(encoded_tensor_list)
