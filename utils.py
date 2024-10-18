@@ -4,9 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 from argparse import Namespace
 from collections import defaultdict
-from pprint import pprint
 
-from tabulate import tabulate
 import torch
 
 import tinygrad
