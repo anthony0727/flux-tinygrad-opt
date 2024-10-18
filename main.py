@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from utils import *
-import os
+import torch
+from utils import get_sched_flux
 from contextlib import contextmanager
-from tqdm import tqdm
-
+from tinygrad import dtypes
+from tinygrad.tensor import Tensor
 
 @contextmanager
 def cuda_timer(label="Timer"):

@@ -1,45 +1,28 @@
-"""PREREQUISITES
-apt install graphviz git-lfs
-pip install pillow pydot networkx sentencepiece torch transformers diffusers accelerate
-pip install git+https://github.com/black-forest-labs/flux.git
-
-You might also have to add path for tinygrad/extras and tinygrad/examples folders. e.g.:
-# sys.path.append('/home/anthony/tinygrad')
-"""
-
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import sys
-sys.path.append('/home/anthony/tinygrad')
+from pathlib import Path
 
 from typing import List, Tuple
 from argparse import Namespace
-from tqdm import tqdm
 from collections import defaultdict
 from pprint import pprint
 
 import torch
 
+import tinygrad
+sys.path.append(str(Path(tinygrad.__file__).parent.parent / Path('examples')))
 from tinygrad import Tensor, Device, nn
 from tinygrad.codegen.kernel import Kernel
-from tinygrad.ops import UOps
+from tinygrad.ops import UOps, sym_infer
 from tinygrad.device import Compiled
 from tinygrad.engine.schedule import create_schedule
 from tinygrad.engine.search import time_linearizer, bufs_from_lin, beam_search
 from tinygrad.helpers import DEBUG, ansilen, getenv, colored
-from tinygrad.shape.symbolic import sym_infer
 from tinygrad import Tensor, nn
-from tinygrad import dtypes
 
 from extra.mcts_search import mcts_search
 from examples.flux1 import (
     load_flow_model
 )
-
-# from diffusers import FluxPipeline
-# model_id = "black-forest-labs/FLUX.1-schnell" #you can also use `black-forest-labs/FLUX.1-dev`
-# pipe = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16)
-# pipe.transformer
 
 def get_original_flow():
     from transformers import pipeline
@@ -116,11 +99,9 @@ def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec):
         return sched
 
     sched = only_flow()
-#   print(f"pruned schedule length {len(sched)}")
+    
 
     return sched
-# if getenv("HALF", 1):
-#   dtypes.default_float = dtypes.half
 
 BEAM = 20
 MCTS = 150
