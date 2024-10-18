@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import torch
-from utils import get_sched_flux
+from utils import get_sched_flux, opt
 from contextlib import contextmanager
 from tinygrad import dtypes
 from tinygrad.tensor import Tensor

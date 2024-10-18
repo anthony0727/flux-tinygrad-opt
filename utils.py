@@ -6,10 +6,11 @@ from argparse import Namespace
 from collections import defaultdict
 from pprint import pprint
 
+from tabulate import tabulate
 import torch
 
 import tinygrad
-sys.path.append(str(Path(tinygrad.__file__).parent.parent / Path('examples')))
+sys.path.append(str(Path(tinygrad.__file__).parent.parent / 'examples'))
 from tinygrad import Tensor, Device, nn
 from tinygrad.codegen.kernel import Kernel
 from tinygrad.ops import UOps, sym_infer
@@ -24,11 +25,15 @@ from examples.flux1 import (
     load_flow_model
 )
 
+def _tabulate(data, col_names):
+    formatted_data = [(key, format(value, '.6f')) for key, value in data.items()]
+    table = tabulate(formatted_data, headers=['Opt.'] + col_names, tablefmt='pretty')
+
+    return table
+
 def get_original_flow():
     from transformers import pipeline
     from flux.util import (
-        configs,
-        embed_watermark,
         load_ae,
         load_clip,
         load_flow_model,
@@ -170,8 +175,8 @@ def opt(sched, methods: List[str] = ['RAW']):
             res_gflop[nm] += (gflops * tm)
             choices.append((tm, gflops, lin, prg, nm))
 
-        pprint(res_tm)
-        # pprint(res_gflop)
+        print(f"{tabulate([[key, format(res_tm[key], '.6f'), format(res_gflop[key], '.6f')]for key in res_tm.keys()], headers=['Opt.', 'Time (ms)', 'GFLOPS'], tablefmt='pretty')}")
+        
         sorted_choices = sorted(choices, key=lambda x: x[0])
         if DEBUG >= 1: # print all kernels
             for tm, gflops, lin, prg, nm in choices:
