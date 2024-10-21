@@ -15,9 +15,8 @@ from torch_geometric.utils.convert import from_networkx
 from sentence_transformers import SentenceTransformer
 
 from tinygrad import Tensor, Device, nn
-from tinygrad.shape.symbolic import sym_infer
 from tinygrad.codegen.kernel import Kernel
-from tinygrad.ops import UOps
+from tinygrad.ops import UOps, Uop
 from tinygrad.device import Compiled
 from tinygrad.engine.schedule import create_schedule
 from tinygrad.engine.search import bufs_from_lin, time_linearizer
@@ -26,8 +25,9 @@ from tinygrad.helpers import getenv
 from tinygrad.engine.search import _ensure_buffer_alloc
 from extra.models.resnet import ResNet50
 from tinygrad import Tensor, Device, dtypes, nn
-from tinygrad.ops import UOps, UOp
-from tinygrad.engine.graph import uops_colors, word_wrap
+from tinygrad.ops import UOps, sym_infer
+from tinygrad.viz.serve import uops_colors
+from tinygrad.helpers import word_wrap
 
 
 def graph_uops(uops:List[UOp]):

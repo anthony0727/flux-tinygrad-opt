@@ -7,5 +7,8 @@ tinygrad
 transformers 
 diffusers 
 accelerate
+tabulate
+gymnasium
+sentence_transformers
 git+https://github.com/black-forest-labs/flux.git
 

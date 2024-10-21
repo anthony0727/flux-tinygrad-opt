@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 from argparse import Namespace
 from collections import defaultdict
+from tabulate import tabulate 
 
 import torch
 
@@ -54,11 +55,10 @@ def get_sched_dummy():
 def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec):
     args = Namespace(**{
         'name': 'flux-schnell', 'width': 512, 'height': 512, 'seed': None, 
-        'prompt': 'a horse sized cat eating a bagel', 'num_steps': None, 
+        'prompt': 'a horse sized cat eating a bagel', 
+        'num_steps': 1, # intentionally 1 
         'guidance': 3.5, 'offload': False, 'output_dir': 'output'
     })
-
-    num_steps = 4 if args.name == "flux-schnell" else 50
     
     args.seed = Tensor._seed
     print(f"Generating with seed {args.seed}:\n{args.prompt}")
