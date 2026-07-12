@@ -1,14 +1,7 @@
-pillow 
-pydot 
-networkx 
-sentencepiece 
-torch 
-tinygrad
-transformers 
-diffusers 
-accelerate
+pillow
+numpy
+sentencepiece
 tabulate
-gymnasium
-sentence_transformers
-git+https://github.com/black-forest-labs/flux.git
 
+# tinygrad is intentionally not installed from PyPI. This experiment imports
+# examples/ and extra/ from the exact source checkout documented in README.md.

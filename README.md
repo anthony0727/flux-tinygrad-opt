@@ -17,7 +17,21 @@ Optim. methods include
 [TODO-1] Reverse-engineer optimized IR back to high-level tinygrad code and benchmark with "torch compiled" original Flux, measured by torch profiler or `torch.cuda.Event`.
 Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abstractions2.py).
 
-## Result
+## Verification status
+
+There is currently **no reproducible end-to-end Flux performance result** in
+this repository. The historical run did not preserve raw per-kernel records,
+an executable combined schedule, numerical-equivalence checks, or exact
+dependency revisions. Current tinygrad no longer exposes the imported APIs.
+
+The closest reconstructable upstream snapshot is tinygrad commit
+`8074c0ec8f1e3ffc5a9459294570d778b5d1fa4f`, the last upstream commit before
+this repository's final 2024 code change. With that full source checkout,
+`scripts/check_environment.py` imports the experiment and creates an 18-item
+dummy schedule. That validates the code's historical API environment only; it
+does not validate the performance numbers below.
+
+## Historical result — do not cite as a model benchmark
 ### Benchmark
 **Exploratory oracle result: 592.40 ms and 60,225 weighted GFLOPS.** This is
 the sum of independently timed per-kernel minima, not executable end-to-end
@@ -54,14 +68,21 @@ uses tinygrad internals from the PR #6334 era, so current unpinned dependencies
 may require adaptation before the experiment can be reproduced.
 
 
-## Run
-(You should own resource enough for running Flux.1)
-```
-python main.py
+## Reconstruct the historical code environment
 
-You might also have to add path for tinygrad/extras and tinygrad/examples folders. e.g. in main.py:
-import sys; sys.path.append('PATH/TO/tinygrad')
 ```
+git clone https://github.com/tinygrad/tinygrad.git .deps/tinygrad
+git -C .deps/tinygrad checkout 8074c0ec8f1e3ffc5a9459294570d778b5d1fa4f
+python -m pip install -r requirements.txt
+PYTHONPATH="$PWD/.deps/tinygrad" python scripts/check_environment.py
+```
+
+`main.py` now constructs the Flux topology without downloading model weights by
+default. This is suitable for schedule-development smoke tests, but random
+unrealized parameters can add initialization work and must not be compared with
+the historical timing table. A new publishable benchmark needs to persist raw
+kernel records, assemble one executable schedule, verify outputs against a
+reference implementation, and record hardware/software provenance.
 
 ## Prerequisites
 ```

@@ -6,8 +6,6 @@ from argparse import Namespace
 from collections import defaultdict
 from tabulate import tabulate 
 
-import torch
-
 import tinygrad
 sys.path.append(str(Path(tinygrad.__file__).parent.parent / 'examples'))
 from tinygrad import Tensor, Device, nn
@@ -21,30 +19,9 @@ from tinygrad import Tensor, nn
 
 from extra.mcts_search import mcts_search
 from examples.flux1 import (
+    Flux,
     load_flow_model
 )
-
-
-def get_original_flow():
-    from transformers import pipeline
-    from flux.util import (
-        load_ae,
-        load_clip,
-        load_flow_model,
-        load_t5,
-    )
-
-    NSFW_THRESHOLD = 0.85
-
-    def get_models(name: str, device: torch.device, offload: bool, is_schnell: bool):
-        t5 = load_t5(device, max_length=256 if is_schnell else 512)
-        clip = load_clip(device)
-        model = load_flow_model(name, device="cpu" if offload else device)
-        ae = load_ae(name, device="cpu" if offload else device)
-        nsfw_classifier = pipeline("image-classification", model="Falconsai/nsfw_image_detection", device=device)
-        return model, ae, t5, clip, nsfw_classifier
-
-    return get_models("flux-schnell", torch.device("cuda"), False, True)[0]
 
 
 def get_sched_dummy():
@@ -52,7 +29,7 @@ def get_sched_dummy():
   return create_schedule([out.lazydata])
 
 
-def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec):
+def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec, load_weights=False):
     args = Namespace(**{
         'name': 'flux-schnell', 'width': 512, 'height': 512, 'seed': None, 
         'prompt': 'a horse sized cat eating a bagel', 
@@ -67,7 +44,11 @@ def get_sched_flux(inp, db_inp, sb_inp, t_vec, vec):
     def _remove_getitem(sched):
         return [x for x in sched if 'getitem' not in str(x.metadata)]
   
-    model = load_flow_model(args.name)
+    model = (
+        load_flow_model(args.name)
+        if load_weights
+        else Flux(guidance_embed=False)
+    )
     def only_db(db_inp):
         db = model.double_blocks[0]
         img, txt = db(img=db_inp['img'], txt=db_inp['txt'], vec=db_inp['vec'], pe=db_inp['pe'])
