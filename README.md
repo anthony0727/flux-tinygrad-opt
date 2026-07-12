@@ -19,9 +19,15 @@ Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abst
 
 ## Result
 ### Benchmark
-**Final result : total 592.40 ms,  60225 GFLOPS**; the cumulative inference time for propagating through all kernels.
+**Exploratory oracle result: 592.40 ms and 60,225 weighted GFLOPS.** This is
+the sum of independently timed per-kernel minima, not executable end-to-end
+Flux inference latency.
 
-For each kernel, the best time across all optimization methods is selected. For example, in the table below, BEAM (594.451 ms) is chosen for kernel_X.
+For each kernel, the best time across all optimization methods is selected. No
+single optimized schedule is assembled and executed, and numerical equivalence
+of the selected programs is not checked. Treat the total as an optimistic lower
+bound for follow-up work, not a model benchmark. For example, in the table
+below, BEAM (594.451 ms) is chosen for kernel_X.
 
 Flux's flow is broken down into 1,423 tinygrad kernels.
 
@@ -40,8 +46,12 @@ Flux's flow is broken down into 1,423 tinygrad kernels.
 
 
 **Caveat**
-Couldn't solve TODO-1, therefore, the times(ms) and GFLOPS are measured within tinygrad's method.
+Couldn't solve TODO-1, therefore, the times(ms) and GFLOPS are measured within tinygrad's method. The cumulative table's work column is GFLOP (operation count), while the final weighted rate is GFLOPS.
 [TODO-2] Does tinygrad lookup hardware intrinsics? or actually measure the time? The [runtime dispatcher](https://github.com/tinygrad/tinygrad/blob/4fc5a34fe794036d929217df9939acf9337ae46d/tinygrad/engine/realize.py#L85) returns execution time when called?
+
+The original environment did not record exact dependency revisions. The code
+uses tinygrad internals from the PR #6334 era, so current unpinned dependencies
+may require adaptation before the experiment can be reproduced.
 
 
 ## Run

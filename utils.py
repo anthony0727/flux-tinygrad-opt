@@ -168,7 +168,7 @@ def opt(sched, methods: List[str] = ['RAW']):
             res_gflop[nm] += (gflops * tm)
             choices.append((tm, gflops, lin, prg, nm))
 
-        print(f"{tabulate([[key, format(res_tm[key], '.6f'), format(res_gflop[key], '.6f')]for key in res_tm.keys()], headers=['Opt.', 'Time (ms)', 'GFLOPS'], tablefmt='pretty')}")
+        print(f"{tabulate([[key, format(res_tm[key], '.6f'), format(res_gflop[key], '.6f')]for key in res_tm.keys()], headers=['Opt.', 'Time (ms)', 'Work (GFLOP)'], tablefmt='pretty')}")
         
         sorted_choices = sorted(choices, key=lambda x: x[0])
         if DEBUG >= 1: # print all kernels
@@ -185,7 +185,11 @@ def opt(sched, methods: List[str] = ['RAW']):
         if (key := str([str(m) for m in si.metadata] if si.metadata is not None else None)) not in usage: usage[key] = (0, 0)
         usage[key] = (usage[key][0] + tm, usage[key][1] + 1)
         print(f"*** {total_tm*1000:7.2f} ms : kernel {i:2d} {lin.name+' '*(37-ansilen(lin.name))} {str(prg.global_size):18s} {str(prg.local_size):12s} takes {tm*1000:7.2f} ms, {gflops:6.0f} GFLOPS {[str(m) for m in si.metadata] if si.metadata is not None else ''}")
-    print(f"******* total {total_tm*1000:.2f} ms, {running_gflops/(total_tm+1e-8):6.0f} GFLOPS")
+    print(
+        f"******* oracle per-kernel lower bound {total_tm*1000:.2f} ms, "
+        f"{running_gflops/(total_tm+1e-8):6.0f} weighted GFLOPS"
+    )
+    print("This is not executable end-to-end inference latency; each kernel was selected independently.")
     print("usage:")
     for k in sorted(usage, key=lambda x: -usage[x][0])[:10]:
         print(f"{usage[k][0]*1000:.2f} ms: {k} ({usage[k][1]} times)")

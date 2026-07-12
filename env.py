@@ -1,7 +1,4 @@
-import sys
-
 from tinygrad.shape.symbolic import sym_infer
-sys.path.insert(0, '/Users/anthony/tinygrad')
 
 import gymnasium as gym
 import networkx as nx
@@ -20,7 +17,7 @@ from tqdm import tqdm
 
 def get_sched_dummy():
     m = nn.Linear(10, 10)
-    out = m(Tensor.empty(10, 10).to('cuda'))
+    out = m(Tensor.empty(10, 10))
     
     return create_schedule([out.lazydata])
 
@@ -45,7 +42,9 @@ class CompilerOptEnv(gym.Env):
     def __init__(self, sched, device=None):
         self.sched = [x for x in sched if x.ast.op is UOps.SINK]
         self.num_kernels = len(self.sched)
-        self.device: Compiled = Device[Device.DEFAULT] or device
+        if self.num_kernels == 0:
+            raise ValueError("schedule has no optimizable kernels")
+        self.device: Compiled = Device[device] if isinstance(device, str) else (device or Device[Device.DEFAULT])
         self.reset_flag = False
         
         self.actions = tactions
@@ -74,8 +73,10 @@ class CompilerOptEnv(gym.Env):
         info = {}
         if self.cnt >= len(tactions): # budget as much as num actions
             self.cnt = 0
+            if self.curr_idx + 1 >= self.num_kernels:
+                return self.lin.ast, 0, True, False, info
             self.curr_idx += 1
-            obs, info = self.reset(self.curr_idx) # add info
+            obs, info = self.reset(self.curr_idx)
 
             return obs, 0, False, False, info
         
@@ -84,6 +85,7 @@ class CompilerOptEnv(gym.Env):
             self.lin.apply_opt(self.actions[action])
         except Exception as e:
             info['error'] = str(e)
+            self.cnt += 1
             return self.lin.ast, -10, term, False, info
 
         curr_flops = self.count_flops()
@@ -91,22 +93,23 @@ class CompilerOptEnv(gym.Env):
         self.prev_flops = curr_flops
 
         
-        if self.curr_idx == len(self.sched):
-            term = True
-            self.curr_idx = 0
-
         self.cnt += 1
 
         return self.lin.ast, delta_flops, term, False, {}
 
 
     def reset(self, ker_idx=0):
+        if not 0 <= ker_idx < self.num_kernels:
+            raise IndexError(f"kernel index {ker_idx} outside schedule of {self.num_kernels}")
+        self.curr_idx = ker_idx
+        self.cnt = 0
         self.si = self.sched[ker_idx]
         self.lin = Kernel(self.si.ast, opts=self.device.renderer)
         # self.var_vals = {k: (k.max + k.min) // 2 for k in self.lin.ast.variables()}
         self.rawbufs = _ensure_buffer_alloc(
             bufs_from_lin(self.lin)
         )
+        self.prev_flops = self.count_flops()
 
         self.reset_flag = True
 
@@ -117,17 +120,12 @@ class CompilerOptEnv(gym.Env):
         print(self.lin.ast)
 
 
-sched = get_sched_resnet()
-
-env = CompilerOptEnv(sched)
-env.reset()
-fails = 0
-sucesses = 0
-n = 1
-
-# for i in range(n):
-    # print(i)
-for i in tqdm(range(100)):
-    obs, rew, done, trunc, info = env.step(env.action_space.sample())
-    print(obs, rew, info)
-    
+if __name__ == "__main__":
+    sched = get_sched_resnet()
+    env = CompilerOptEnv(sched)
+    env.reset()
+    for _ in tqdm(range(100)):
+        obs, rew, done, trunc, info = env.step(env.action_space.sample())
+        print(obs, rew, info)
+        if done or trunc:
+            break

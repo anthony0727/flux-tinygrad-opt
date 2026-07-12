@@ -1,7 +1,3 @@
-import sys
-sys.path.insert(0, '/Users/anthony/tinygrad')
-
-
 from tinygrad import Tensor, nn
 from tinygrad.engine.schedule import create_schedule
 from tinygrad.helpers import getenv
@@ -13,10 +9,10 @@ dtype_strlist += [f'PtrDType({x})' for x in dtype_strlist]
 
 
 def get_sched_dummy():
-    m = nn.Linear(10, 10)
-    out = m(Tensor.empty(10, 10).to('cuda'))
+  m = nn.Linear(10, 10)
+  out = m(Tensor.empty(10, 10))
     
-    return create_schedule([out.lazydata])
+  return create_schedule([out.lazydata])
 
 def get_sched_resnet():
   mdl = ResNet50()
@@ -34,5 +30,3 @@ def get_sched_resnet():
     sched = create_schedule(targets)
     # print(f"schedule length {len(sched)}")
   return sched
-
-

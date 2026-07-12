@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, '/Users/anthony/tinygrad')
-
 from typing import List
 
 import numpy as np
@@ -44,10 +41,15 @@ def graph_uops(uops:List[UOp]):
 
 
 class CompilerOptEnv(gym.Env):
-    def __init__(self, sched, device=None):
+    def __init__(self, sched, device=None, feature_device=None):
         self.sched = [x for x in sched if x.ast.op is UOps.SINK]
         self.num_kernels = len(self.sched)
-        self.device: Compiled = Device[Device.DEFAULT] or device
+        if self.num_kernels == 0:
+            raise ValueError("schedule has no optimizable kernels")
+        self.device: Compiled = Device[device] if isinstance(device, str) else (device or Device[Device.DEFAULT])
+        self.feature_device = th.device(
+            feature_device or ("cuda" if th.cuda.is_available() else "cpu")
+        )
         self.reset_flag = False
 
 
@@ -74,7 +76,9 @@ class CompilerOptEnv(gym.Env):
         
         print(f"optimizing for {self.device}")
 
-        self.text_encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2').to('cuda')
+        self.text_encoder = SentenceTransformer(
+            'sentence-transformers/all-MiniLM-L6-v2'
+        ).to(self.feature_device)
 
     def encode_src(self, src):
         return self.text_encoder.encode(src, convert_to_tensor=True).float()
@@ -85,7 +89,7 @@ class CompilerOptEnv(gym.Env):
         
         inst_lst, dtype_lst = [], []
         for i in pyg_data.label:
-            a, b = i.split('\n')
+            a, b = i.split('\n', 1)
             inst_lst.append(a)
             dtype_lst.append(b)
         
@@ -98,9 +102,9 @@ class CompilerOptEnv(gym.Env):
         )
         
         return spaces.graph.GraphInstance(
-            nodes=pyg_data.x.to('cuda'),
+            nodes=pyg_data.x.to(self.feature_device),
             edges=None,
-            edge_links=pyg_data.edge_index.to('cuda')
+            edge_links=pyg_data.edge_index.to(self.feature_device)
         )
 
     def encode_hardware(
@@ -112,8 +116,7 @@ class CompilerOptEnv(gym.Env):
             globals:List[int]
         ):
         def _normalize(l):
-            if len(l) > 0:
-                return [x / 1024. for x in l]
+            return [x / 1024. for x in l]
             
         mem_estimate = mem_estimate / 8e10 # 80GB
         global_size = _normalize(global_size)
@@ -121,7 +124,9 @@ class CompilerOptEnv(gym.Env):
         # vars = _normalize(vars)
         globals = _normalize(globals)
         
-        return th.from_numpy(np.array([mem_estimate] + global_size + local_size + globals, dtype=np.float32)).to('cuda')  #+ vars
+        return th.from_numpy(
+            np.array([mem_estimate] + global_size + local_size + globals, dtype=np.float32)
+        ).to(self.feature_device)  #+ vars
 
     def featurize(self, prg):
         # 'tabular': prg.mem_estimate + prg.global_size + prg.local_size + prg.vars + prg.globals,
@@ -160,9 +165,10 @@ class CompilerOptEnv(gym.Env):
         info = {}
         if self.cnt >= len(tactions): # budget as much as num actions
             self.cnt = 0
+            if self.curr_idx + 1 >= self.num_kernels:
+                return self.featurize(self.lin.to_program()), 0, True, False, info
             self.curr_idx += 1
-            obs, info = self.reset(self.curr_idx) # add info
-
+            obs, info = self.reset(self.curr_idx)
             return obs, 0, False, False, info
         
         term = False
@@ -170,6 +176,7 @@ class CompilerOptEnv(gym.Env):
             self.lin.apply_opt(self.actions[action])
         except Exception as e:
             info['error'] = str(e)
+            self.cnt += 1
             return self.featurize(self.lin.to_program()), 0, term, False, info
 
         prg = self.lin.to_program()
@@ -183,20 +190,21 @@ class CompilerOptEnv(gym.Env):
         self.prev_flops = curr_flops
 
         
-        if self.curr_idx == len(self.sched):
-            term = True
-            self.curr_idx = 0
-
         self.cnt += 1
 
         return self.featurize(prg), delta_flops, term, False, {}
 
 
     def reset(self, ker_idx=0, seed=42, **kwargs):
+        if not 0 <= ker_idx < self.num_kernels:
+            raise IndexError(f"kernel index {ker_idx} outside schedule of {self.num_kernels}")
+        self.curr_idx = ker_idx
+        self.cnt = 0
         self.si = self.sched[ker_idx]
         self.lin = Kernel(self.si.ast, opts=self.device.renderer)
         # self.var_vals = {k: (k.max + k.min) // 2 for k in self.lin.ast.variables()}
         self.rawbufs = _ensure_buffer_alloc(bufs_from_lin(self.lin))
+        self.prev_flops = self.count_flops(self.lin.to_program())
 
         self.reset_flag = True
 

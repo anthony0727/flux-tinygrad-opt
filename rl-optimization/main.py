@@ -145,34 +145,33 @@ class PPO(nn.Module):
 
     # env = gym.make('CartPole-v1') 
 
-score = 0.0
-print_interval = 1
+def main():
+    env = CompilerOptEnv(get_sched_resnet(), feature_device=DEVICE)
+    # env = TimeLimit(env, max_episode_steps=T_horizon)
+    model = PPO(n_action=env.action_space.n).to(DEVICE)
 
-env = CompilerOptEnv(
-    get_sched_resnet()
-)
-# env = TimeLimit(env, max_episode_steps=T_horizon)
-model = PPO(n_action=env.action_space.n).to(DEVICE)
-for n_epi in range(10000):
-    s, _ = env.reset()
-    done = False
-    while not done:
-        for t in range(env.action_space.n):
-            prob = model.pi(model._s_lst_stack([s]))
-            m = Categorical(prob)
-            a = m.sample().item()
-            s_prime, r, done, truncated, info = env.step(a)
-            print(f'epi: {n_epi} kern_idx: {env.curr_idx} step: {t} rew: {r} score: {score} {info}')
-            model.put_data((s, a, r/int(sys.maxsize), s_prime, prob.squeeze()[a].item(), done))
-            s = s_prime
+    for n_epi in range(10000):
+        score = 0.0
+        s, _ = env.reset()
+        done = False
+        while not done:
+            for t in range(env.action_space.n):
+                prob = model.pi(model._s_lst_stack([s]))
+                m = Categorical(prob)
+                a = m.sample().item()
+                s_prime, r, done, truncated, info = env.step(a)
+                print(f'epi: {n_epi} kern_idx: {env.curr_idx} step: {t} rew: {r} score: {score} {info}')
+                model.put_data((s, a, r/int(sys.maxsize), s_prime, prob.squeeze()[a].item(), done))
+                s = s_prime
 
-            score += r
-            if done or truncated:
-                obs, info = env.reset()
-                done = False
+                score += r
+                if done or truncated:
+                    break
 
-        model.train_net()
+            model.train_net()
 
-    # if n_epi%print_interval==0 and n_epi!=0:
-    print("# of episode :{}, avg score : {:.1f}".format(n_epi, score))
-    score = 0.0
+        print("# of episode :{}, avg score : {:.1f}".format(n_epi, score))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,8 +1,4 @@
 
-import sys
-sys.path.insert(0, '/Users/anthony/tinygrad')
-
-
 import numpy as np
 import gymnasium as gym
 
