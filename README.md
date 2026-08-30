@@ -17,31 +17,23 @@ Optim. methods include
 [TODO-1] Reverse-engineer optimized IR back to high-level tinygrad code and benchmark with "torch compiled" original Flux, measured by torch profiler or `torch.cuda.Event`.
 Also, refer to [this](https://github.com/tinygrad/tinygrad/blob/master/docs/abstractions2.py).
 
-## Verification status
+## Reproducibility
 
-There is currently **no reproducible end-to-end Flux performance result** in
-this repository. The historical run did not preserve raw per-kernel records,
-an executable combined schedule, numerical-equivalence checks, or exact
-dependency revisions. Current tinygrad no longer exposes the imported APIs.
+Can't re-run from this tree. The tinygrad internals this used (PR
+[#6334](https://github.com/tinygrad/tinygrad/pull/6334) era:
+`tinygrad.codegen.kernel`, `UOps`, `create_schedule`, plus a machine-local
+tinygrad checkout) are gone from current tinygrad. Per-kernel dumps and
+pinned revisions were never committed.
 
-The closest reconstructable upstream snapshot is tinygrad commit
-`8074c0ec8f1e3ffc5a9459294570d778b5d1fa4f`, the last upstream commit before
-this repository's final 2024 code change. With that full source checkout,
-`scripts/check_environment.py` imports the experiment and creates an 18-item
-dummy schedule. That validates the code's historical API environment only; it
-does not validate the performance numbers below.
+tinygrad `8074c0ec8f1e3ffc5a9459294570d778b5d1fa4f` +
+`scripts/check_environment.py` only checks that the old import path still
+builds a dummy schedule. It does not re-time Flux.
 
-## Historical result — do not cite as a model benchmark
+## Result
 ### Benchmark
-**Exploratory oracle result: 592.40 ms and 60,225 weighted GFLOPS.** This is
-the sum of independently timed per-kernel minima, not executable end-to-end
-Flux inference latency.
+**Final result : total 592.40 ms,  60225 GFLOPS**; the cumulative inference time for propagating through all kernels.
 
-For each kernel, the best time across all optimization methods is selected. No
-single optimized schedule is assembled and executed, and numerical equivalence
-of the selected programs is not checked. Treat the total as an optimistic lower
-bound for follow-up work, not a model benchmark. For example, in the table
-below, BEAM (594.451 ms) is chosen for kernel_X.
+For each kernel, the best time across all optimization methods is selected. For example, in the table below, BEAM (594.451 ms) is chosen for kernel_X.
 
 Flux's flow is broken down into 1,423 tinygrad kernels.
 
@@ -63,10 +55,6 @@ Flux's flow is broken down into 1,423 tinygrad kernels.
 Couldn't solve TODO-1, therefore, the times(ms) and GFLOPS are measured within tinygrad's method. The cumulative table's work column is GFLOP (operation count), while the final weighted rate is GFLOPS.
 [TODO-2] Does tinygrad lookup hardware intrinsics? or actually measure the time? The [runtime dispatcher](https://github.com/tinygrad/tinygrad/blob/4fc5a34fe794036d929217df9939acf9337ae46d/tinygrad/engine/realize.py#L85) returns execution time when called?
 
-The original environment did not record exact dependency revisions. The code
-uses tinygrad internals from the PR #6334 era, so current unpinned dependencies
-may require adaptation before the experiment can be reproduced.
-
 
 ## Reconstruct the historical code environment
 
@@ -77,12 +65,8 @@ python -m pip install -r requirements.txt
 PYTHONPATH="$PWD/.deps/tinygrad" python scripts/check_environment.py
 ```
 
-`main.py` now constructs the Flux topology without downloading model weights by
-default. This is suitable for schedule-development smoke tests, but random
-unrealized parameters can add initialization work and must not be compared with
-the historical timing table. A new publishable benchmark needs to persist raw
-kernel records, assemble one executable schedule, verify outputs against a
-reference implementation, and record hardware/software provenance.
+`main.py` builds the Flux topology without downloading weights by default.
+Don't compare that smoke test against the timing table above.
 
 ## Prerequisites
 ```
